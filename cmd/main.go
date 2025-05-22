@@ -1,9 +1,13 @@
 package main
 
 import (
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/Knapptan/Go_T1_Name_info_rest/internal/handler"
-	"github.com/Knapptan/Go_T1_Name_info_rest/internal/models"
 	"github.com/Knapptan/Go_T1_Name_info_rest/internal/storage"
+	"github.com/gorilla/mux"
 )
 
 // Добавление новой цитаты (POST /quotes)
@@ -18,5 +22,16 @@ func main() {
 
 	quoteHandler := handler.NewQuoteHandler(repo)
 
-	
+	r := mux.NewRouter()
+	r.HandleFunc("/quotes", quoteHandler.CreateQuote).Methods("POST")
+	r.HandleFunc("/quotes", quoteHandler.GetAllQuotes).Methods("GET")
+
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         "127.0.0.1:8080",
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+
+	log.Fatal(srv.ListenAndServe())
 }

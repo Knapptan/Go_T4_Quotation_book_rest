@@ -25,6 +25,9 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/quotes", quoteHandler.CreateQuote).Methods("POST")
 	r.HandleFunc("/quotes", quoteHandler.GetAllQuotes).Methods("GET")
+	r.HandleFunc("/quotes/random", quoteHandler.GetRandomQuote).Methods("GET")
+	r.HandleFunc("/quotes/{id}", quoteHandler.DeleteQuote).Methods("DELETE")
+	
 
 	srv := &http.Server{
 		Handler:      r,

@@ -2,10 +2,13 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 
 	"github.com/Knapptan/Go_T1_Name_info_rest/internal/models"
 	"github.com/Knapptan/Go_T1_Name_info_rest/internal/storage"
+	"github.com/gorilla/mux"
 )
 
 type QuoteHandler struct {
@@ -51,4 +54,57 @@ func (h *QuoteHandler) GetAllQuotes(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(quotes); err != nil {
 		http.Error(w, "Failed to encode quotes", http.StatusInternalServerError)
 	}
+}
+
+func (h *QuoteHandler) GetRandomQuote(w http.ResponseWriter, r *http.Request) {
+	quote, err := h.repo.GetRandom(r.Context())
+	if err != nil {
+		http.Error(w, "Failed to get randome quote", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(quote); err != nil {
+		http.Error(w, "Failed to encode quote", http.StatusInternalServerError)
+	}
+}
+
+func (h *QuoteHandler) GetByAuthorQuotes(w http.ResponseWriter, r *http.Request) {
+	author := r.URL.Query().Get("author")
+	if author == "" {
+		http.Error(w, "'author' query parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	quotes, err := h.repo.GetByAuthor(r.Context(), author)
+	if err != nil {
+		http.Error(w, "Failed to fetch quotes for author", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(quotes); err != nil {
+		http.Error(w, "Failed to encode quotes", http.StatusInternalServerError)
+	}
+}
+
+func (h *QuoteHandler) DeleteQuote(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	err := h.repo.Delete(r.Context(), id)
+	if err != nil {
+		switch {
+		case errors.Is(err, storage.ErrNotFound):
+			http.Error(w, "Quote not found", http.StatusNotFound)
+		default:
+			log.Printf("Delete error: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

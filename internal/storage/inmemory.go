@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/Knapptan/Go_T1_Name_info_rest/internal/models"
@@ -75,7 +74,7 @@ func (s *InMemoryStorage) Delete(ctx context.Context, id string) error {
 	defer s.mu.Unlock()
 
 	if _, exists := s.quotes[id]; !exists {
-		return fmt.Errorf("quote with id %q not found", id)
+		return ErrNotFound
 	}
 
 	delete(s.quotes, id)

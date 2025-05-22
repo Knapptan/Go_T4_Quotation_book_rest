@@ -2,35 +2,40 @@ package storage
 
 import (
 	"context"
+	"strconv"
 	"sync"
 
 	"github.com/Knapptan/Go_T1_Name_info_rest/internal/models"
-	"github.com/google/uuid"
 )
 
 type InMemoryStorage struct {
-	quotes map[string]models.Quote
 	mu     sync.RWMutex
+	quotes map[int]models.Quote
+	nextID int
 }
 
 func NewInMemoryStorage() *InMemoryStorage {
 	return &InMemoryStorage{
-		quotes: make(map[string]models.Quote),
+		quotes: make(map[int]models.Quote),
+		nextID: 1,
 	}
 }
 
-func (s *InMemoryStorage) Create(ctx context.Context, quoteReq models.CreateQuoteRequest) (string, error) {
+func (s *InMemoryStorage) Create(ctx context.Context, req models.CreateQuoteRequest) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	id := uuid.New().String()
+	id := s.nextID
+	s.nextID++
+
 	quote := models.Quote{
 		ID:     id,
-		Author: quoteReq.Author,
-		Text:   quoteReq.Text,
+		Author: req.Author,
+		Text:   req.Text,
 	}
 	s.quotes[id] = quote
-	return id, nil
+
+	return strconv.Itoa(id), nil
 }
 
 func (s *InMemoryStorage) GetAll(ctx context.Context) ([]models.Quote, error) {
@@ -73,10 +78,15 @@ func (s *InMemoryStorage) Delete(ctx context.Context, id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, exists := s.quotes[id]; !exists {
+	idNum, err := strconv.Atoi(id)
+	if err != nil {
+		return ErrConflict
+	}
+
+	if _, exists := s.quotes[idNum]; !exists {
 		return ErrNotFound
 	}
 
-	delete(s.quotes, id)
+	delete(s.quotes, idNum)
 	return nil
 }

@@ -67,7 +67,7 @@ func (h *QuoteHandler) GetRandomQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("GetRandomQuote: id %s", quote.ID)
+	log.Printf("GetRandomQuote: id %d", quote.ID)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

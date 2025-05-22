@@ -2,7 +2,7 @@ package models
 
 // Основная модель цитаты
 type Quote struct {
-	ID     string `json:"id"`
+	ID     int    `json:"id"`
 	Author string `json:"author"`
 	Text   string `json:"quote"`
 }

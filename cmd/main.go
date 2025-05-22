@@ -26,6 +26,7 @@ func main() {
 	r.HandleFunc("/quotes", quoteHandler.CreateQuote).Methods("POST")
 	r.HandleFunc("/quotes", quoteHandler.GetAllQuotes).Methods("GET")
 	r.HandleFunc("/quotes/random", quoteHandler.GetRandomQuote).Methods("GET")
+	r.HandleFunc("/quotes", quoteHandler.GetByAuthorQuotes).Methods("GET")
 	r.HandleFunc("/quotes/{id}", quoteHandler.DeleteQuote).Methods("DELETE")
 	
 

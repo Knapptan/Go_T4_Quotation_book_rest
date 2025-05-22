@@ -37,6 +37,8 @@ func (h *QuoteHandler) CreateQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("CreateQuote: id %s", id)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"id": id})
@@ -48,6 +50,8 @@ func (h *QuoteHandler) GetAllQuotes(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get all quotes", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("GetAllQuotes: len quotes %d", len(quotes))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -62,6 +66,8 @@ func (h *QuoteHandler) GetRandomQuote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get randome quote", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("GetRandomQuote: id %s", quote.ID)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -82,6 +88,8 @@ func (h *QuoteHandler) GetByAuthorQuotes(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "Failed to fetch quotes for author", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("GetByAuthorQuotes: author %s", author)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -105,6 +113,8 @@ func (h *QuoteHandler) DeleteQuote(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	log.Printf("DeleteQuote: id %s", id)
 
 	w.WriteHeader(http.StatusNoContent)
 }

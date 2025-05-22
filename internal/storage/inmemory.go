@@ -14,6 +14,12 @@ type InMemoryStorage struct {
 	mu     sync.RWMutex
 }
 
+func NewInMemoryStorage() *InMemoryStorage {
+	return &InMemoryStorage{
+		quotes: make(map[string]models.Quote),
+	}
+}
+
 func (s *InMemoryStorage) Create(ctx context.Context, quoteReq models.CreateQuoteRequest) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

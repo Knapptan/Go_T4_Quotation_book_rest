@@ -38,3 +38,17 @@ func (h *QuoteHandler) CreateQuote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"id": id})
 }
+
+func (h *QuoteHandler) GetAllQuotes(w http.ResponseWriter, r *http.Request) {
+	quotes, err := h.repo.GetAll(r.Context())
+	if err != nil {
+		http.Error(w, "Failed to get all quotes", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(quotes); err != nil {
+		http.Error(w, "Failed to encode quotes", http.StatusInternalServerError)
+	}
+}

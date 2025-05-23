@@ -26,6 +26,16 @@ func (h *QuoteHandler) CreateQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if request.Author == "" {
+		http.Error(w, "Field 'author' is required", http.StatusBadRequest)
+		return
+	}
+
+	if request.Text == "" {
+		http.Error(w, "Field 'text' is required", http.StatusBadRequest)
+		return
+	}
+
 	quote := models.CreateQuoteRequest{
 		Author: request.Author,
 		Text:   request.Text,

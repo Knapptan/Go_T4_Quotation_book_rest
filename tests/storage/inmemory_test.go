@@ -143,34 +143,67 @@ func TestInMemoryStorage_GetRandom(t *testing.T) {
 
 	t.Run("with single quote", func(t *testing.T) {
 		s := storage.NewInMemoryStorage()
-		test := models.CreateQuoteRequest{Author: "Test", Text: "Test"}
-		id, _ := s.Create(context.Background(), test)
-		idS, _ := strconv.Atoi(id)
 
-		expected := models.Quote{
-			ID:     idS,
-			Author: test.Author,
-			Text:   test.Text,
+		testRequest := models.CreateQuoteRequest{
+			Author: "Test",
+			Text:   "Test Text",
 		}
 
+		idStr, err := s.Create(context.Background(), testRequest)
+		require.NoError(t, err)
+		id, _ := strconv.Atoi(idStr)
+
+		expected := models.Quote{
+			ID:     id,
+			Author: testRequest.Author,
+			Text:   testRequest.Text,
+		}
+
+		// 4. Получаем результат
 		actual, err := s.GetRandom(context.Background())
 		require.NoError(t, err)
-		require.Equal(t, expected, actual)
+
+		// 5. Сравниваем все поля
+		require.Equal(t, expected.ID, actual.ID)
+		require.Equal(t, expected.Author, actual.Author)
+		require.Equal(t, expected.Text, actual.Text)
 	})
 
 	t.Run("with multiple quotes", func(t *testing.T) {
 		s := storage.NewInMemoryStorage()
-		quotes := []models.CreateQuoteRequest{
+
+		testRequests := []models.CreateQuoteRequest{
 			{Author: "A1", Text: "Q1"},
 			{Author: "A2", Text: "Q2"},
+			{Author: "A3", Text: "Q3"},
 		}
 
-		for _, q := range quotes {
-			s.Create(context.Background(), q)
+		// 2. Сохраняем цитаты и собираем созданные объекты
+		createdQuotes := make([]models.Quote, 0)
+		for _, req := range testRequests {
+			idStr, err := s.Create(context.Background(), req)
+			require.NoError(t, err)
+			id, _ := strconv.Atoi(idStr)
+
+			createdQuotes = append(createdQuotes, models.Quote{
+				ID:     id,
+				Author: req.Author,
+				Text:   req.Text,
+			})
 		}
 
 		actual, err := s.GetRandom(context.Background())
 		require.NoError(t, err)
-		require.Contains(t, quotes, actual)
+
+		found := false
+		for _, q := range createdQuotes {
+			if q.ID == actual.ID &&
+				q.Author == actual.Author &&
+				q.Text == actual.Text {
+				found = true
+				break
+			}
+		}
+		require.True(t, found, "Quote %+v not found in storage", actual)
 	})
 }

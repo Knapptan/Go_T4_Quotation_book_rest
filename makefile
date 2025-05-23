@@ -30,11 +30,6 @@ test: ## Запустить все тесты
 test-race: ## Проверить на гонки данных
 	$(GO) test -race $(TEST_PACKAGES)
 
-.PHONY: coverage
-coverage: ## Сгенерировать отчет о покрытии
-	$(GO) test -coverprofile=$(COVER_PROFILE) $(TEST_PACKAGES)
-	$(GO) tool cover -html=$(COVER_PROFILE)
-
 .PHONY: clean
 clean: ## Очистить артефакты сборки
 	rm -rf bin/

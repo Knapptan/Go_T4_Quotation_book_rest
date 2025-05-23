@@ -32,6 +32,5 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 	log.Printf("Server started on adress: %s", Adrr)
-	log.Println("In time", time.Now())
 	log.Fatal(srv.ListenAndServe())
 }

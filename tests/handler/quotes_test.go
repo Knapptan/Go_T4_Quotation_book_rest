@@ -73,6 +73,132 @@ func TestCreateQuoteHandler(t *testing.T) {
 	require.Equal(t, "42", resp["id"], "ID в ответе должен совпадать с тем, что вернул репозиторий")
 }
 
+func TestGetAllQuotes_Success(t *testing.T) {
+	mockQuotes := []models.Quote{
+		{ID: 1, Author: "Author1", Text: "Text1"},
+		{ID: 2, Author: "Author2", Text: "Text2"},
+	}
+
+	mockStorage := &MockStorage{
+		GetAllFunc: func(ctx context.Context) ([]models.Quote, error) {
+			return mockQuotes, nil
+		},
+	}
+
+	h := handler.NewQuoteHandler(mockStorage)
+	req := httptest.NewRequest(http.MethodGet, "/quotes", nil)
+	rr := httptest.NewRecorder()
+
+	router := mux.NewRouter()
+	router.HandleFunc("/quotes", h.GetAllQuotes).Methods(http.MethodGet)
+	router.ServeHTTP(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var response []models.Quote
+	err := json.Unmarshal(rr.Body.Bytes(), &response)
+	require.NoError(t, err)
+	require.Equal(t, mockQuotes, response)
+}
+
+func TestGetRandomQuote_Success(t *testing.T) {
+	mockQuote := models.Quote{ID: 1, Author: "Author", Text: "Text"}
+
+	mockStorage := &MockStorage{
+		GetRandomFunc: func(ctx context.Context) (models.Quote, error) {
+			return mockQuote, nil
+		},
+	}
+
+	h := handler.NewQuoteHandler(mockStorage)
+	req := httptest.NewRequest(http.MethodGet, "/quotes/random", nil)
+	rr := httptest.NewRecorder()
+
+	router := mux.NewRouter()
+	router.HandleFunc("/quotes/random", h.GetRandomQuote).Methods(http.MethodGet)
+	router.ServeHTTP(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var response models.Quote
+	err := json.Unmarshal(rr.Body.Bytes(), &response)
+	require.NoError(t, err)
+	require.Equal(t, mockQuote, response)
+}
+
+func TestGetQuotesByAuthor_Success(t *testing.T) {
+	mockQuotes := []models.Quote{
+		{ID: 1, Author: "Author", Text: "Text1"},
+		{ID: 2, Author: "Author", Text: "Text2"},
+	}
+
+	mockStorage := &MockStorage{
+		GetByAuthorFunc: func(ctx context.Context, author string) ([]models.Quote, error) {
+			require.Equal(t, "Author", author)
+			return mockQuotes, nil
+		},
+	}
+
+	h := handler.NewQuoteHandler(mockStorage)
+	req := httptest.NewRequest(http.MethodGet, "/quotes?author=Author", nil)
+	rr := httptest.NewRecorder()
+
+	router := mux.NewRouter()
+	router.HandleFunc("/quotes", h.GetByAuthorQuotes).Methods(http.MethodGet)
+	router.ServeHTTP(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var response []models.Quote
+	err := json.Unmarshal(rr.Body.Bytes(), &response)
+	require.NoError(t, err)
+	require.Equal(t, mockQuotes, response)
+}
+
+func TestCreateQuote_InvalidInput(t *testing.T) {
+	testCases := []struct {
+		name       string
+		body       string
+		statusCode int
+	}{
+		{
+			name:       "empty_body",
+			body:       "",
+			statusCode: http.StatusBadRequest,
+		},
+		{
+			name:       "invalid_json",
+			body:       "{invalid}",
+			statusCode: http.StatusBadRequest,
+		},
+		{
+			name:       "missing_author",
+			body:       `{"text": "Text"}`,
+			statusCode: http.StatusBadRequest,
+		},
+		{
+			name:       "missing_text",
+			body:       `{"author": "Author"}`,
+			statusCode: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := handler.NewQuoteHandler(&MockStorage{})
+			req := httptest.NewRequest(http.MethodPost, "/quotes", strings.NewReader(tc.body))
+			req.Header.Set("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+			router := mux.NewRouter()
+			router.HandleFunc("/quotes", h.CreateQuote).Methods(http.MethodPost)
+			router.ServeHTTP(rr, req)
+
+			require.Equal(t, tc.statusCode, rr.Code)
+		})
+	}
+}
+
 func TestDeleteQuote_NotFound(t *testing.T) {
 	mockStorage := &MockStorage{
 		DeleteFunc: func(ctx context.Context, id string) error {

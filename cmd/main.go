@@ -10,6 +10,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const Adrr = "127.0.0.1:8080"
+
 func main() {
 
 	repo := storage.NewInMemoryStorage()
@@ -22,14 +24,14 @@ func main() {
 	r.HandleFunc("/quotes/random", quoteHandler.GetRandomQuote).Methods("GET")
 	r.HandleFunc("/quotes", quoteHandler.GetByAuthorQuotes).Methods("GET")
 	r.HandleFunc("/quotes/{id}", quoteHandler.DeleteQuote).Methods("DELETE")
-	
 
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         "127.0.0.1:8080",
+		Addr:         Adrr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-
+	log.Printf("Server started on adress: %s", Adrr)
+	log.Println("In time", time.Now())
 	log.Fatal(srv.ListenAndServe())
 }

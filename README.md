@@ -62,5 +62,10 @@ quotes-service/
 ├── go.mod
 ├── go.sum
 ├── README.md                # Инструкции
-└── tests/        # Юнит-тесты
+├── makefile
+└── tests                    # Юнит-тесты
+    ├── handler
+    │   └── quotes_test.go
+    └── storage
+        └── inmemory_test.go
 ```

@@ -53,6 +53,10 @@ func (s *InMemoryStorage) GetRandom(ctx context.Context) (models.Quote, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	if len(s.quotes) == 0 {
+		return models.Quote{}, ErrNotFound
+	}
+
 	var quote models.Quote
 	for _, q := range s.quotes {
 		quote = q
@@ -80,7 +84,7 @@ func (s *InMemoryStorage) Delete(ctx context.Context, id string) error {
 
 	idNum, err := strconv.Atoi(id)
 	if err != nil {
-		return ErrConflict
+		return ErrNotFound
 	}
 
 	if _, exists := s.quotes[idNum]; !exists {

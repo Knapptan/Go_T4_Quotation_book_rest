@@ -55,7 +55,7 @@ func TestCreateQuoteHandler(t *testing.T) {
 
 	h := handler.NewQuoteHandler(mockStorage)
 
-	body := `{"author":"Author","text":"Text"}`
+	body := `{"author":"Author","quote":"Text"}`
 	req := httptest.NewRequest(http.MethodPost, "/quotes", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -185,7 +185,13 @@ func TestCreateQuote_InvalidInput(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			h := handler.NewQuoteHandler(&MockStorage{})
+			mockStorage := &MockStorage{
+				CreateFunc: func(ctx context.Context, req models.CreateQuoteRequest) (string, error) {
+					return "", nil
+				},
+			}
+			h := handler.NewQuoteHandler(mockStorage)
+
 			req := httptest.NewRequest(http.MethodPost, "/quotes", strings.NewReader(tc.body))
 			req.Header.Set("Content-Type", "application/json")
 

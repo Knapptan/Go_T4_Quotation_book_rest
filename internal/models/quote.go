@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 // Основная модель цитаты
 type Quote struct {
 	ID     int    `json:"id"`
@@ -11,4 +13,14 @@ type Quote struct {
 type CreateQuoteRequest struct {
 	Author string `json:"author"`
 	Text   string `json:"quote"`
+}
+
+// Конфигурация
+type Config struct {
+	Port    string
+	Address string
+}
+
+func (c *Config) StrAdress() string {
+	return fmt.Sprintf("%s:%s", c.Address, c.Port)
 }

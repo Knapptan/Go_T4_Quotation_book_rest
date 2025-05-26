@@ -5,16 +5,20 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Knapptan/Go_T1_Name_info_rest/internal/config"
 	"github.com/Knapptan/Go_T1_Name_info_rest/internal/handler"
 	"github.com/Knapptan/Go_T1_Name_info_rest/internal/storage"
 	"github.com/gorilla/mux"
 )
 
-const Adrr = "127.0.0.1:8080"
-
 func main() {
 
 	repo := storage.NewInMemoryStorage()
+
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal("Config load error")
+	}
 
 	quoteHandler := handler.NewQuoteHandler(repo)
 
@@ -25,12 +29,18 @@ func main() {
 	r.HandleFunc("/quotes", quoteHandler.GetByAuthorQuotes).Methods("GET")
 	r.HandleFunc("/quotes/{id}", quoteHandler.DeleteQuote).Methods("DELETE")
 
+	address := cfg.StrAdress()
+
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         Adrr,
+		Addr:         address,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	log.Printf("Server started on adress: %s", Adrr)
-	log.Fatal(srv.ListenAndServe())
+
+	log.Printf("Server started on adress: %s", address)
+	serverErr := srv.ListenAndServe()
+	if serverErr != nil && serverErr != http.ErrServerClosed {
+		log.Fatal(serverErr)
+	}
 }

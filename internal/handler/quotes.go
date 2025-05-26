@@ -125,6 +125,10 @@ func (h *QuoteHandler) DeleteQuote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("DeleteQuote: id %s", id)
-
-	w.WriteHeader(http.StatusNoContent)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Quote successfully deleted",
+		"id":      id,
+	})
 }

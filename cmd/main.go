@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/Knapptan/Go_T1_Name_info_rest/internal/config"
@@ -38,9 +42,27 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		serverErr := srv.ListenAndServe()
+		if serverErr != nil && serverErr != http.ErrServerClosed {
+			log.Fatal(serverErr)
+		}
+	}()
+
 	log.Printf("Server started on adress: %s", address)
-	serverErr := srv.ListenAndServe()
-	if serverErr != nil && serverErr != http.ErrServerClosed {
-		log.Fatal(serverErr)
+
+	<-done
+	log.Println("Server stopping...")
+
+	// Graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("HTTP shutdown error: %v", err)
 	}
+
 }

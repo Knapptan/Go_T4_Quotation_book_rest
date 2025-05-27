@@ -1,16 +1,17 @@
 package config
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Knapptan/Go_T1_Name_info_rest/internal/models"
-	"github.com/joho/godotenv"
 )
 
 func Load() (*models.Config, error) {
 
-	if err := godotenv.Load("ini.env"); err != nil {
+	if err := loadEnvFile("ini.env"); err != nil {
 		return nil, fmt.Errorf("error loading ini.env: %w", err)
 	}
 
@@ -30,4 +31,37 @@ func Load() (*models.Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func loadEnvFile(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return err
+		}
+		return err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		if os.Getenv(key) == "" {
+			os.Setenv(key, value)
+		}
+	}
+
+	return scanner.Err()
 }
